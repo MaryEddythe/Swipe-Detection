@@ -10,8 +10,10 @@ mp_draw = mp.solutions.drawing_utils
 cap = cv2.VideoCapture(0)
 prev_x = 0
 prev_y = 0
-gesture_delay = 1
 last_gesture_time = time.time()
+
+horizontal_threshold = 20 
+vertical_threshold = 20    
 
 while True:
     success, img = cap.read()
@@ -27,22 +29,23 @@ while True:
             y = int(hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].y * img.shape[0])
 
             if time.time() - last_gesture_time > gesture_delay:
-                # Left/Right gestures
-                if x - prev_x > 100:
-                    pyautogui.hotkey('ctrl', 'pagedown')  # Next page
+                dx = x - prev_x
+                dy = y - prev_y
+
+                if dx > horizontal_threshold:
+                    pyautogui.hotkey('ctrl', 'pagedown')  
                     print("Next Slide")
                     last_gesture_time = time.time()
-                elif prev_x - x > 100:
-                    pyautogui.hotkey('ctrl', 'pageup')  # Previous page
+                elif dx < -horizontal_threshold:
+                    pyautogui.hotkey('ctrl', 'pageup')  
                     print("Previous Slide")
                     last_gesture_time = time.time()
-                # Up/Down gestures
-                elif y - prev_y > 100:
-                    pyautogui.scroll(500)  # Scroll up
+                elif dy > vertical_threshold:
+                    pyautogui.scroll(500)  
                     print("Scroll Up")
                     last_gesture_time = time.time()
-                elif prev_y - y > 100:
-                    pyautogui.scroll(-500)  # Scroll down
+                elif dy < -vertical_threshold:
+                    pyautogui.scroll(-500)  
                     print("Scroll Down")
                     last_gesture_time = time.time()
 
@@ -50,7 +53,7 @@ while True:
             prev_y = y
 
     cv2.imshow("Image", img)
-    if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
+    if cv2.waitKey(1) & 0xFF == 27:
         break
 
 cap.release()
